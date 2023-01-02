@@ -1,0 +1,464 @@
+﻿<UserControl x:Class="GameTournament.MVVM.Views.TournamentView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GameTournament.MVVM.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition Width="0.5*"/>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Right"                    >
+            <Separator Style="{StaticResource {x:Static ToolBar.SeparatorStyleKey}}"
+                       Background="#1e1b36"
+                       HorizontalAlignment="Center"
+                       Width="0.3"/>
+        </StackPanel>
+
+        <!--Visibility="{Binding AddStackPanelVisibility}"-->
+        <StackPanel x:Name="AddStackPanel"                    
+                    VerticalAlignment="Top"
+                    Visibility="{Binding AddStackPanelVisibility}"
+                    HorizontalAlignment="Left"
+                    Margin="20 0 0 0">
+            <StackPanel x:Name="AddPlayerStackPanel"
+                        Orientation="Horizontal"
+                        Margin="0 0 0 10">
+                <TextBox x:Name="HoldPlayerTextBox"
+                         Width="200"
+                         MaxWidth="200"
+                         Height="60"         
+                         FontSize="20"
+                         Style="{StaticResource HoldTxtBox}"
+                         Text="{Binding ElementName=SelectPlayerBox, Path=SelectedItem.Name}"/>
+
+                <ComboBox x:Name="SelectPlayerBox"
+                          ItemsSource="{Binding AllPlayers}"
+                          Margin="10 0 0 0"
+                          Foreground="AliceBlue"
+                          MaxDropDownHeight="150"
+                          DisplayMemberPath="Name"
+                          Width="150"
+                          FontSize="15"
+                          Text="Select Player" 
+                          HorizontalContentAlignment="Left"
+                          Style="{StaticResource RoundComboBox}"
+                          SelectedItem="{Binding SelectedPlayer}"
+                          SelectedValue="{Binding SelectedPlayer}"
+                          />
+            </StackPanel>
+
+            <StackPanel x:Name="AddTeamStackPanel"
+                        Orientation="Horizontal"
+                        Margin="0 0 0 15">
+                <TextBox x:Name="HoldTeamTextBox"
+                         Style="{StaticResource HoldTxtBox}"
+                         Width="200"
+                         MaxWidth="200"
+                         Height="60"  
+                         FontSize="20"
+                         IsReadOnly="True"
+                         Text="{Binding ElementName=SelectTeamBox, Path=SelectedItem.Name}"/>
+
+                <ComboBox x:Name="SelectTeamBox"
+                          ItemsSource="{Binding AllTeams}"
+                          Margin="10 0 0 0"
+                          Width="150"
+                          FontSize="15"
+                          DisplayMemberPath="Name"
+                          Foreground="AliceBlue"  
+                          HorizontalContentAlignment="Left"
+                          Text="Select Team"                               
+                          Style="{StaticResource RoundComboBox}"
+                          SelectedItem="{Binding SelectedTeam}"
+                          />
+            </StackPanel>
+
+            <Button x:Name="AddToTournamentButton"
+                    HorizontalAlignment="Center"
+                    Style="{StaticResource ModernBtn}"
+                    Content="Add to tournament"
+                    Height="40"
+                    Width="120"                    
+                    Command="{Binding AddToTournamentCommand}"/>
+        </StackPanel>
+
+        <Button x:Name="StartTournamentButton"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Top"
+                Content="Start Tournament"
+                Style="{StaticResource ModernBtn}"
+                Visibility="{Binding AddStackPanelVisibility}"
+                Command="{Binding StartTournamentCommand}"
+                Margin="0 55 20 0"
+                Height="30"
+                Width="100"/>
+        
+        <StackPanel Visibility="{Binding MatchesListBoxVisibility}"
+                    Background="Transparent"
+                    VerticalAlignment="Top"
+                    HorizontalAlignment="Left">
+            <ListBox x:Name="MatchesListBox"
+                     VerticalAlignment="Top"
+                     Margin="10"
+                     BorderThickness="0"                                                       
+                     Background="#272537"
+                     ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                     ScrollViewer.VerticalScrollBarVisibility="Hidden"
+                     ItemsSource="{Binding Matches}">
+
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Margin" Value="10"/>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Horizontal"
+                                        Width="350">
+                                <TextBlock Text="{Binding Player1.Name}"
+                                           Foreground="#91b7d9"
+                                           FontSize="30"
+                                           Margin="0 0 10 0"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+
+                                <TextBlock Text="-"
+                                           Foreground="#91b7d9"
+                                           FontSize="40"
+                                           Margin="0 0 10 0"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+
+                                <TextBlock Text="{Binding Player2.Name}"
+                                           Foreground="#91b7d9"
+                                           FontSize="30"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+                            </StackPanel>
+
+                            <StackPanel Orientation="Horizontal" 
+                                        Width="140">
+                                <TextBox Text="{Binding Goals1, UpdateSourceTrigger=PropertyChanged}"
+                                         x:Name="Score1"
+                                         IsReadOnly="{Binding Score1IsEditable}"
+                                         PreviewKeyDown="Score1_PreviewKeyDown"
+                                         PreviewTextInput="Score1_PreviewTextInput"
+                                         GotKeyboardFocus="Score1_GotKeyboardFocus"
+                                         Style="{StaticResource RoundTxtBox}"
+                                         Margin="0 0 10 0"
+                                         MaxLength="1"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"/>
+
+                                <TextBlock Text="-"
+                                           FontSize="40"  
+                                           Foreground="#91b7d9"
+                                           Margin="0 0 10 0"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"/>
+
+                                <TextBox Text="{Binding Goals2, UpdateSourceTrigger=PropertyChanged}"                                     
+                                         x:Name="Score2"
+                                         IsReadOnly="{Binding Score2IsEditable}"
+                                         MaxLength="1"
+                                         PreviewKeyDown="Score2_PreviewKeyDown"
+                                         PreviewTextInput="Score2_PreviewTextInput"
+                                         GotKeyboardFocus="Score2_GotKeyboardFocus"
+                                         Style="{StaticResource RoundTxtBox}"
+                                         HorizontalAlignment="Center"
+                                         VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Left"
+                        Margin="30 0 0 0">
+                
+            <Button x:Name="EndTournamentButton"
+                    Style="{StaticResource ModernBtn}"
+                    Command="{Binding EndTournamentCommand}"
+                    Content="End Tournament"                                        
+                    Width="120"
+                    Height="40"/>
+
+            <Button x:Name="RestartTournamentButton"
+                    Style="{StaticResource ModernBtn}"
+                    Content="Start new tournament"
+                    Command="{Binding PlayAgainCommand}"
+                    Margin="30 0 0 0"
+                    Visibility="{Binding PlayAgainButtonVisibility}"
+                    Width="130"
+                    />
+            </StackPanel>
+
+        </StackPanel>
+
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.7*"/>
+                <RowDefinition Height="0.6*"/>
+                <RowDefinition Height="0.6*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel>
+                <Label Content="Players in tournament"
+                       HorizontalAlignment="Center"
+                       HorizontalContentAlignment="Center"
+                       Background="#91b7d9"
+                       FontSize="20"
+                       Foreground="#272537"/>
+                <ListBox Background="#272537"                         
+                         Margin="10"
+                         HorizontalAlignment="Center"
+                         HorizontalContentAlignment="Center"
+                         ItemsSource="{Binding PlayersInTournament}"
+                         ScrollViewer.HorizontalScrollBarVisibility="Hidden">
+
+
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Foreground="#91b7d9"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Text="{Binding Name}"
+                                           FontSize="15"
+                                           Margin="0 0 5 0"/>
+                                <TextBlock Text="-"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           FontSize="20"
+                                           Foreground="#91b7d9"/>
+                                <TextBlock Foreground="#91b7d9"
+                                           FontSize="15"
+                                           HorizontalAlignment="Center"
+                                           VerticalAlignment="Center"
+                                           Text="{Binding TeamInTournament.Name}"
+                                           Margin="5 0 0 0"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </StackPanel>
+            
+            <StackPanel x:Name="StatisticsStackPanel"
+                        Grid.Row="1"
+                        Visibility="{Binding StatisticsTableVisibility}">
+                <Label Content="Statistics"
+                       HorizontalAlignment="Center"
+                       HorizontalContentAlignment="Center"
+                       Background="#91b7d9"
+                       FontSize="20"
+                       Foreground="#272537"/>
+
+                <DataGrid x:Name="StatisticsTable"
+                          ItemsSource="{Binding Statistics}"                          
+                          HorizontalContentAlignment="Center"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          AutoGenerateColumns="False"
+                          Margin="0 3 0 0"                          
+                          RowHeaderWidth="0"
+                          CanUserResizeRows="False"
+                          CanUserResizeColumns="False"
+                          GridLinesVisibility="None"                          
+                          IsReadOnly="True"
+                          BorderThickness="0"
+                          Background="#272537"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Hidden">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Player Name"
+                                            Binding="{Binding Path=PlayerInGame.Name}"
+                                            Width="140"                                       
+                                            FontSize="13">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Background" Value="#272537"/>
+                                    <Setter Property="VerticalAlignment" Value="Stretch"/>
+                                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                    <Setter Property="Foreground" Value="AliceBlue"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+        
+                        <DataGridTextColumn Header="AVG"
+                                            Width="60"
+                                            FontSize="13"
+                                            Binding="{Binding Path=AverageGoals, UpdateSourceTrigger=PropertyChanged}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Background" Value="#272537"/>
+                                    <Setter Property="VerticalAlignment" Value="Stretch"/>
+                                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                    <Setter Property="Foreground" Value="AliceBlue"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                        
+                        <DataGridTextColumn Header="Points"
+                                            FontSize="13"
+                                            Width="60"
+                                            Binding="{Binding Path= Points, UpdateSourceTrigger=PropertyChanged}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Background" Value="#272537"/>
+                                    <Setter Property="VerticalAlignment" Value="Stretch"/>
+                                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                    <Setter Property="Foreground" Value="AliceBlue"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                    </DataGrid.Columns>
+
+                    <DataGrid.Resources>
+                        <Style BasedOn="{StaticResource {x:Type DataGridColumnHeader}}" TargetType="{x:Type DataGridColumnHeader}">
+                            <Setter Property="Background" Value="#272537" />
+                            <Setter Property="Foreground" Value="#91b7d9"/>
+                            <Setter Property="BorderBrush" Value="#1e1b36"/>
+                            <Setter Property="FontSize" Value="14"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="Margin" Value="2"/>
+                        </Style>
+
+                        <Style TargetType="{x:Type DataGridCell}">
+                            <Style.Triggers>
+                                <Trigger Property="DataGridCell.IsSelected" Value="True">
+                                    <Setter Property="BorderBrush">
+                                        <Setter.Value>
+                                            <SolidColorBrush Color="#272537"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+                                    <Setter Property="Background">
+                                        <Setter.Value>
+                                            <SolidColorBrush Color="#272537"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                            </Style.Triggers>
+                                                       
+                            <Setter Property="BorderBrush" Value="#1e1b36"/>
+                            <Setter Property="Background" Value="#1e1b36"/>
+                            <Setter Property="BorderThickness" Value="2"/>
+                            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                        </Style>
+
+
+                    </DataGrid.Resources>
+
+                </DataGrid>
+            </StackPanel>
+
+            <StackPanel x:Name="WinnersStackPanel"
+                        Grid.Row="2"
+                        Visibility="{Binding WinnersStackPanelVisibility}">
+                
+                <Label Content="Winners"
+                       HorizontalAlignment="Center"
+                       HorizontalContentAlignment="Center"
+                       Background="#91b7d9"
+                       FontSize="20"
+                       Foreground="#272537"/>
+
+                <DataGrid x:Name="WinnersTable"                
+                          ItemsSource="{Binding Winners}"
+                          HorizontalContentAlignment="Center"
+                          HorizontalAlignment="Stretch"
+                          VerticalAlignment="Stretch"
+                          AutoGenerateColumns="False"
+                          Margin="0 3 0 0"                          
+                          RowHeaderWidth="0"
+                          CanUserResizeRows="False"
+                          CanUserResizeColumns="False"
+                          GridLinesVisibility="None"                          
+                          IsReadOnly="True"
+                          BorderThickness="0"
+                          Background="#272537"
+                          HorizontalScrollBarVisibility="Disabled"
+                          VerticalScrollBarVisibility="Hidden">
+
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Tour No"
+                                            FontSize="15"
+                                            Width="130"
+                                            Binding="{Binding Path=WonTournamentNumber}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Background" Value="#272537"/>
+                                    <Setter Property="VerticalAlignment" Value="Stretch"/>
+                                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                    <Setter Property="Foreground" Value="AliceBlue"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+
+                        <DataGridTextColumn Header="Name"
+                                            FontSize="15"     
+                                            Width="133"
+                                            Binding="{Binding Path=Name}">
+                            <DataGridTextColumn.ElementStyle>
+                                <Style TargetType="{x:Type TextBlock}">
+                                    <Setter Property="Background" Value="#272537"/>
+                                    <Setter Property="VerticalAlignment" Value="Stretch"/>
+                                    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                                    <Setter Property="Foreground" Value="AliceBlue"/>
+                                </Style>
+                            </DataGridTextColumn.ElementStyle>
+                        </DataGridTextColumn>
+                    </DataGrid.Columns>
+
+                    <DataGrid.Resources>
+                        <Style BasedOn="{StaticResource {x:Type DataGridColumnHeader}}" TargetType="{x:Type DataGridColumnHeader}">
+                            <Setter Property="Background" Value="#272537" />
+                            <Setter Property="Foreground" Value="#91b7d9"/>
+                            <Setter Property="BorderBrush" Value="#1e1b36"/>
+                            <Setter Property="FontSize" Value="14"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                            <Setter Property="Margin" Value="2"/>
+                        </Style>
+
+                        <Style TargetType="{x:Type DataGridCell}">
+                            <Style.Triggers>
+                                <Trigger Property="DataGridCell.IsSelected" Value="True">
+                                    <Setter Property="BorderBrush">
+                                        <Setter.Value>
+                                            <SolidColorBrush Color="#272537"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                    <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+                                    <Setter Property="Background">
+                                        <Setter.Value>
+                                            <SolidColorBrush Color="#272537"/>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Trigger>
+                            </Style.Triggers>
+
+                            <Setter Property="BorderBrush" Value="#1e1b36"/>
+                            <Setter Property="Background" Value="#1e1b36"/>
+                            <Setter Property="BorderThickness" Value="2"/>
+                            <Setter Property="HorizontalAlignment" Value="Stretch"/>
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                            <Setter Property="TextBlock.TextAlignment" Value="Center"/>
+                        </Style>
+                    </DataGrid.Resources>
+                </DataGrid>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

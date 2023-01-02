@@ -1,0 +1,31 @@
+﻿<Application x:Class="GameTournament.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:GameTournament"
+             xmlns:viewModel="clr-namespace:GameTournament.MVVM.ViewModels"
+             xmlns:view="clr-namespace:GameTournament.MVVM.Views"
+             StartupUri="MVVM/Views/NavigationWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ReusableTemplates/ModerRadioButton.xaml"/>
+                <ResourceDictionary Source="ReusableTemplates/ModernTextBox.xaml"/>
+                <ResourceDictionary Source="ReusableTemplates/ModernTextBox - Copy.xaml"/>
+                <ResourceDictionary Source="ReusableTemplates/ModernButton.xaml"/>
+                <ResourceDictionary Source="ReusableTemplates/HoldTextBox.xaml"/>
+                <ResourceDictionary Source="ReusableTemplates/RoundTextBox.xaml"/>
+                <ResourceDictionary Source="ReusableTemplates/RoundComboBox.xaml"/>
+                
+            </ResourceDictionary.MergedDictionaries>
+
+            <DataTemplate DataType="{x:Type viewModel:HomeViewModel}">
+                <view:DataListView/>
+            </DataTemplate>
+            
+            <DataTemplate DataType="{x:Type viewModel:TournamentViewModel}">
+                <view:TournamentView/>
+            </DataTemplate>
+
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
