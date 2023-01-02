@@ -110,7 +110,8 @@
                      Background="#272537"
                      ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                      ScrollViewer.VerticalScrollBarVisibility="Hidden"
-                     ItemsSource="{Binding Matches}">
+                     ItemsSource="{Binding Matches}"
+                     MaxHeight="400">
 
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
@@ -223,7 +224,9 @@
                          HorizontalAlignment="Center"
                          HorizontalContentAlignment="Center"
                          ItemsSource="{Binding PlayersInTournament}"
-                         ScrollViewer.HorizontalScrollBarVisibility="Hidden">
+                         ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                         MaxHeight="120"
+                         ScrollViewer.VerticalScrollBarVisibility="Hidden">
 
 
                     <ListBox.ItemTemplate>
@@ -276,6 +279,7 @@
                           IsReadOnly="True"
                           BorderThickness="0"
                           Background="#272537"
+                          MaxHeight="110"
                           HorizontalScrollBarVisibility="Disabled"
                           VerticalScrollBarVisibility="Hidden">
                     <DataGrid.Columns>

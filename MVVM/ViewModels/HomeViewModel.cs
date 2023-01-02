@@ -1,13 +1,10 @@
 ﻿using GameTournament.ExtraThings;
 using GameTournament.MVVM.Models;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Input;
+
 
 namespace GameTournament.MVVM.ViewModels
 {
@@ -108,7 +105,7 @@ namespace GameTournament.MVVM.ViewModels
             else
             {
                 DataAccess access = new DataAccess();
-                Player NewPlayer = new Player() { ID = PlayersList.Count + 1, Name = NewPlayerName };
+                Player NewPlayer = new Player() { ID = PlayersList.Last().ID + 1, Name = NewPlayerName };
                 PlayersList.Add(NewPlayer);
                 NewPlayerName = "";
                 MessageBox.Show("Player is added successfully");
