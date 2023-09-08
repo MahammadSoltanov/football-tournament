@@ -29,3 +29,4 @@ C:\Users\ASUS\Documents\C#\WPF\GameTournament\obj\Debug\MVVM\Views\TournamentVie
 C:\Users\ASUS\Documents\C#\WPF\GameTournament\obj\Debug\ReusableTemplates\HoldTextBox.baml
 C:\Users\ASUS\Documents\C#\WPF\GameTournament\obj\Debug\ReusableTemplates\RoundComboBox.baml
 C:\Users\ASUS\Documents\C#\WPF\GameTournament\obj\Debug\ReusableTemplates\RoundTextBox.baml
+C:\Users\ASUS\Documents\C#\WPF\GameTournament\obj\Debug\GameTournament.csproj.SuggestedBindingRedirects.cache

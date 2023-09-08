@@ -16,6 +16,7 @@ namespace GameTournament.MVVM.ViewModels
         private Store _storeTVM;
         private int _tourNumber = 0;
         private bool _canEnd = true;
+        private Team _selectedTeam;
         private BindingList<Player> _reservePlayers = new BindingList<Player>();
         private BindingList<Team> _reserveTeams = new BindingList<Team>();
         #endregion
@@ -48,7 +49,6 @@ namespace GameTournament.MVVM.ViewModels
                 OnPropertyChanged();
             }
         }
-        private Team _selectedTeam;
         public RelayCommand AddToTournamentCommand { get; set; }
         public RelayCommand StartTournamentCommand { get; set; }
         public RelayCommand EndTournamentCommand { get; set; }
@@ -61,8 +61,8 @@ namespace GameTournament.MVVM.ViewModels
         public Visibility AddStackPanelVisibility
         {
             get { return _addStackPanelVisibility; }
-            set 
-            { 
+            set
+            {
                 if (_addStackPanelVisibility != value)
                 {
                     _addStackPanelVisibility = value;
@@ -167,9 +167,9 @@ namespace GameTournament.MVVM.ViewModels
             StartTournamentCommand.RaiseCanExecuteChanged();
             Statistics.Clear();
             Matches.Clear();
-            
+
             //Filling comboboxes with values that were deleted before
-            foreach(Player player in _reservePlayers)
+            foreach (Player player in _reservePlayers)
             {
                 player.OpponentCount = 0;
                 AllPlayers.Add(player);
@@ -177,11 +177,11 @@ namespace GameTournament.MVVM.ViewModels
 
             foreach (Team team in _reserveTeams)
                 AllTeams.Add(team);
-             
+
             //Clearing reserves so it will not stack data for other play again loop
             _reservePlayers.Clear();
             _reserveTeams.Clear();
-            
+
             AddStackPanelVisibility = Visibility.Visible;
         }
 
@@ -199,16 +199,16 @@ namespace GameTournament.MVVM.ViewModels
         {
             foreach (Match match in Matches)
             {
-                if (match.Goals1 > match.Goals2)                
-                    foreach (State state in Statistics)                    
-                        if (state.PlayerInGame.ID == match.Player1.ID)                        
-                            state.Points += 3;                 
+                if (match.Goals1 > match.Goals2)
+                    foreach (State state in Statistics)
+                        if (state.PlayerInGame.ID == match.Player1.ID)
+                            state.Points += 3;
 
-                if (match.Goals1 < match.Goals2)                
-                    foreach (State state in Statistics)                    
-                        if (state.PlayerInGame.ID == match.Player2.ID)                        
-                            state.Points += 3;                                            
-                
+                if (match.Goals1 < match.Goals2)
+                    foreach (State state in Statistics)
+                        if (state.PlayerInGame.ID == match.Player2.ID)
+                            state.Points += 3;
+
 
                 if (match.Goals1 == match.Goals2)
                 {
@@ -223,21 +223,21 @@ namespace GameTournament.MVVM.ViewModels
                 }
             }
 
-            List<int> PointsList = new List<int>();            
-            List<int> SumList = new List<int>();            
+            List<int> PointsList = new List<int>();
+            List<int> SumList = new List<int>();
 
             foreach (State state in Statistics)
             {
-                PointsList.Add(state.Points);                
+                PointsList.Add(state.Points);
                 SumList.Add(state.Points + state.AverageGoals);
             }
 
-            if(PointsList.Distinct().Count() == 1)
-            {                                                       
+            if (PointsList.Distinct().Count() == 1)
+            {
                 if (SumList.Distinct().Count() == 1)
                 {
                     MessageBox.Show("There is no winner in this tournament");
-                    Player winner = new Player() { WonTournamentNumber = _tourNumber, Name="Nobody won" };
+                    Player winner = new Player() { WonTournamentNumber = _tourNumber, Name = "Nobody won" };
                     Winners.Add(winner);
                 }
 
@@ -253,10 +253,10 @@ namespace GameTournament.MVVM.ViewModels
                         foreach (int dup in dupBase2)
                             if (dup == SumList.Max())
                                 maxExist2 = true;
-                        
+
 
                         if (maxExist2)
-                        {                            
+                        {
                             MessageBox.Show("There is no winner in this tournament");
                             Player winner = new Player() { WonTournamentNumber = _tourNumber, Name = "Nobody won" };
                             Winners.Add(winner);
@@ -276,7 +276,7 @@ namespace GameTournament.MVVM.ViewModels
                         Statistics[winnerIndex].PlayerInGame.WonTournamentNumber = _tourNumber;
                         Winners.Add(Statistics[winnerIndex].PlayerInGame);
                     }
-                }                                                 
+                }
             }
 
             else
@@ -352,7 +352,7 @@ namespace GameTournament.MVVM.ViewModels
                     Winners.Add(Statistics[PointsList.IndexOf(PointsList.Max())].PlayerInGame);
                 }
             }
-            
+
 
             _canEnd = false;
             PlayAgainButtonVisibility = Visibility.Visible;
