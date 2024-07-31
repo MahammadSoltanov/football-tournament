@@ -1,11 +1,8 @@
 ﻿using GameTournament.ExtraThings;
 using GameTournament.MVVM.Models;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace GameTournament.MVVM.ViewModels
@@ -136,6 +133,7 @@ namespace GameTournament.MVVM.ViewModels
             DataAccess access = new DataAccess();
             AllPlayers = new BindingList<Player>(access.GetPlayers());
             AllTeams = new BindingList<Team>(access.GetTeams());
+
             Statistics = new BindingList<State>();
             Winners = new BindingList<Player>();
             AddToTournamentCommand = new RelayCommand(AddToTournament, CanAddToTournament);
@@ -201,12 +199,12 @@ namespace GameTournament.MVVM.ViewModels
             {
                 if (match.Goals1 > match.Goals2)
                     foreach (State state in Statistics)
-                        if (state.PlayerInGame.ID == match.Player1.ID)
+                        if (state.PlayerInGame.Id == match.Player1.Id)
                             state.Points += 3;
 
                 if (match.Goals1 < match.Goals2)
                     foreach (State state in Statistics)
-                        if (state.PlayerInGame.ID == match.Player2.ID)
+                        if (state.PlayerInGame.Id == match.Player2.Id)
                             state.Points += 3;
 
 
@@ -214,10 +212,10 @@ namespace GameTournament.MVVM.ViewModels
                 {
                     foreach (State state in Statistics)
                     {
-                        if (state.PlayerInGame.ID == match.Player1.ID)
+                        if (state.PlayerInGame.Id == match.Player1.Id)
                             state.Points += 1;
 
-                        if (state.PlayerInGame.ID == match.Player2.ID)
+                        if (state.PlayerInGame.Id == match.Player2.Id)
                             state.Points += 1;
                     }
                 }
@@ -415,10 +413,10 @@ namespace GameTournament.MVVM.ViewModels
                     Matches[changedIndex].Score1IsEditable = true;
                     foreach (State state in Statistics)
                     {
-                        if (state.PlayerInGame.ID == Matches[changedIndex].Player2.ID)
+                        if (state.PlayerInGame.Id == Matches[changedIndex].Player2.Id)
                             state.AverageGoals -= Matches[changedIndex].Goals1;
 
-                        if (state.PlayerInGame.ID == Matches[changedIndex].Player1.ID)
+                        if (state.PlayerInGame.Id == Matches[changedIndex].Player1.Id)
                             state.AverageGoals += Matches[changedIndex].Goals1;
                     }
                 }
@@ -427,10 +425,10 @@ namespace GameTournament.MVVM.ViewModels
                 {
                     foreach (State state in Statistics)
                     {
-                        if (state.PlayerInGame.ID == Matches[changedIndex].Player1.ID)
+                        if (state.PlayerInGame.Id == Matches[changedIndex].Player1.Id)
                             state.AverageGoals -= Matches[changedIndex].Goals2;
 
-                        if (state.PlayerInGame.ID == Matches[changedIndex].Player2.ID)
+                        if (state.PlayerInGame.Id == Matches[changedIndex].Player2.Id)
                             state.AverageGoals += Matches[changedIndex].Goals2;
                     }
                     Matches[changedIndex].Score2IsEditable = true;

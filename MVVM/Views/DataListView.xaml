@@ -30,9 +30,9 @@
                   HorizontalScrollBarVisibility="Hidden"
                   VerticalScrollBarVisibility="Hidden">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID"
+                <DataGridTextColumn Header="Id"
                                     FontSize="20"
-                                    Binding="{Binding ID}"
+                                    Binding="{Binding Id}"
                                     >
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="{x:Type TextBlock}">
@@ -114,8 +114,8 @@
                   VerticalScrollBarVisibility="Hidden"
                   Grid.Column="1">
             <DataGrid.Columns>
-                <DataGridTextColumn Header="ID"
-                                    Binding="{Binding ID}"
+                <DataGridTextColumn Header="Id"
+                                    Binding="{Binding Id}"
                                     FontSize="20"                                    >
                     <DataGridTextColumn.ElementStyle>
                         <Style TargetType="{x:Type TextBlock}">

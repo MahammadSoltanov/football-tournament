@@ -2,7 +2,6 @@
 using GameTournament.MVVM.Models;
 using System;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows;
 
 
@@ -10,9 +9,8 @@ namespace GameTournament.MVVM.ViewModels
 {
     public class HomeViewModel : ObservableObject
     {
-        #region Fields
         private Store _storeHVM;
-        #endregion
+
         #region Properties        
         public BindingList<Player> PlayersList { get; set; }
         public BindingList<Team> TeamsList { get; set; }
@@ -23,25 +21,25 @@ namespace GameTournament.MVVM.ViewModels
         {
             get { return _newPlayerName; }
             set
-            {                
+            {
                 _newPlayerName = value;
                 OnPropertyChanged();
-                AddPlayerCommand.RaiseCanExecuteChanged();                
+                AddPlayerCommand.RaiseCanExecuteChanged();
             }
         }
         private string _newPlayerName;
 
         public string NewTeamName
         {
-            get { return _newTeamName; }
+            get { return _NewTeamName; }
             set
             {
-                _newTeamName = value;
+                _NewTeamName = value;
                 OnPropertyChanged();
                 AddTeamCommand.RaiseCanExecuteChanged();
             }
         }
-        private string _newTeamName;
+        private string _NewTeamName;
         #endregion
 
         public HomeViewModel(Store store)
@@ -54,72 +52,102 @@ namespace GameTournament.MVVM.ViewModels
             AddTeamCommand = new RelayCommand(AddTeam, CanAddTeam);
         }
 
+
+        #region TeamMethods
         private void AddTeam()
         {
-            bool canAdd = true;
-            foreach (Team team in TeamsList)
+            if (DoesTeamExist())
             {
-                if (team.Name.Equals(NewTeamName))
-                {
-                    canAdd = false;
-                }
+                MessageBox.Show("This team already exists.");
             }
 
-            if (!canAdd)
-                MessageBox.Show("This name exists in list!");
-
-            else
+            var newTeam = new Team() { Name = NewTeamName };
+            TeamsList.Add(newTeam);
+            try
             {
-                DataAccess access = new DataAccess();
-                Team NewTeam = new Team() { ID = TeamsList.Count + 1, Name = NewTeamName };
-                TeamsList.Add(NewTeam);
+                var _dataAccess = new DataAccess();
+                _dataAccess.AddTeam(newTeam.Name);
+                _storeHVM.OnTeamAdded(newTeam);
                 NewTeamName = "";
-                MessageBox.Show("Team is added successfully");
-                access.AddTeam(NewTeam.Name);
-                _storeHVM.OnTeamAdded(NewTeam);
+                MessageBox.Show("Team is added successfully.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
 
         private bool CanAddTeam()
         {
-            if (NewTeamName == null || NewTeamName == "")
+            if (string.IsNullOrWhiteSpace(NewTeamName))
+            {
                 return false;
+            }
 
-            else return true;
+            return true;
         }
 
-        private void AddPlayer()
+        private bool DoesTeamExist()
         {
-            bool canAdd = true;
-            foreach(Player player in PlayersList)
+            foreach (Team team in TeamsList)
             {
-                if(player.Name.Equals(NewPlayerName))
+                if (team.Name.ToLower().Equals(NewTeamName.ToLower()))
                 {
-                    canAdd = false;
+                    return true;
                 }
             }
 
-            if(!canAdd)            
-                MessageBox.Show("This name exists in list!");            
+            return false;
+        }
+        #endregion
 
-            else
+        #region PlayerMethods
+        private void AddPlayer()
+        {
+            if (DoesPlayerExist())
             {
-                DataAccess access = new DataAccess();
-                Player NewPlayer = new Player() { ID = PlayersList.Last().ID + 1, Name = NewPlayerName };
-                PlayersList.Add(NewPlayer);
-                NewPlayerName = "";
-                MessageBox.Show("Player is added successfully");
-                access.AddPlayer(NewPlayer.Name);
+                MessageBox.Show("This player already exists.");
+            }
+
+            Player NewPlayer = new Player() { Name = NewPlayerName };
+            PlayersList.Add(NewPlayer);
+
+            try
+            {
+                var _dataAccess = new DataAccess();
+                _dataAccess.AddPlayer(NewPlayer.Name);
                 _storeHVM.OnPlayerAdded(NewPlayer);
+                NewPlayerName = "";
+                MessageBox.Show("Player is added successfully.");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
             }
         }
 
         private bool CanAddPlayer()
         {
-            if (NewPlayerName == null || NewPlayerName == "")
+            if (string.IsNullOrWhiteSpace(NewPlayerName))
+            {
                 return false;
+            }
 
-            else return true;
+            return true;
         }
+
+        private bool DoesPlayerExist()
+        {
+            foreach (Player player in PlayersList)
+            {
+                if (player.Name.ToLower().Equals(NewPlayerName.ToLower()))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        #endregion
     }
 }
