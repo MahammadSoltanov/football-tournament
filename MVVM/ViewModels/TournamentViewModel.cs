@@ -14,16 +14,14 @@ namespace GameTournament.MVVM.ViewModels
         private int _tourNumber = 0;
         private bool _canEnd = true;
         private Team _selectedTeam;
-        private BindingList<Player> _reservePlayers = new BindingList<Player>();
-        private BindingList<Team> _reserveTeams = new BindingList<Team>();
+        private BindingList<Player> _allPlayers;
+        private BindingList<Team> _allTeams;
         #endregion
 
         #region ViewModelProperties        
         public BindingList<Player> Winners { get; set; }
         public BindingList<State> Statistics { get; set; }
-        public BindingList<Player> AllPlayers { get; set; }
         public BindingList<Match> Matches { get; set; }
-        public BindingList<Team> AllTeams { get; set; }
         public BindingList<Player> PlayersInTournament { get; set; }
         public Player SelectedPlayer
         {
@@ -43,6 +41,26 @@ namespace GameTournament.MVVM.ViewModels
             {
                 _selectedTeam = value;
                 AddToTournamentCommand.RaiseCanExecuteChanged();
+                OnPropertyChanged();
+            }
+        }
+
+        public BindingList<Player> AllPlayers
+        {
+            get { return _allPlayers; }
+            set
+            {
+                _allPlayers = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public BindingList<Team> AllTeams
+        {
+            get { return _allTeams; }
+            set
+            {
+                _allTeams = value;
                 OnPropertyChanged();
             }
         }
@@ -130,9 +148,8 @@ namespace GameTournament.MVVM.ViewModels
         public TournamentViewModel(Store store)
         {
             _storeTVM = store;
-            DataAccess access = new DataAccess();
-            AllPlayers = new BindingList<Player>(access.GetPlayers());
-            AllTeams = new BindingList<Team>(access.GetTeams());
+            AllPlayers = GetAllPlayers();
+            AllTeams = GetAllTeams();
 
             Statistics = new BindingList<State>();
             Winners = new BindingList<Player>();
@@ -146,39 +163,19 @@ namespace GameTournament.MVVM.ViewModels
             _storeTVM.TeamAdded += _storeTVM_TeamAdded;
         }
 
-
-
         #region MVVM and Commands
         private void PlayAgain()
         {
-            //Setting visibilities to default ones
-            StatisticsTableVisibility = Visibility.Hidden;
-            PlayAgainButtonVisibility = Visibility.Hidden;
-            MatchesListBoxVisibility = Visibility.Hidden;
+            SetDefaultVisibilities();
 
             //Changing End button's activity
             _canEnd = true;
             EndTournamentCommand.RaiseCanExecuteChanged();
+            ClearTournamentInformation();
 
-            //Clearing tournament and setting start button's activity
-            PlayersInTournament.Clear();
-            StartTournamentCommand.RaiseCanExecuteChanged();
-            Statistics.Clear();
-            Matches.Clear();
+            AllPlayers = GetAllPlayers();
+            AllTeams = GetAllTeams();
 
-            //Filling comboboxes with values that were deleted before
-            foreach (Player player in _reservePlayers)
-            {
-                player.OpponentCount = 0;
-                AllPlayers.Add(player);
-            }
-
-            foreach (Team team in _reserveTeams)
-                AllTeams.Add(team);
-
-            //Clearing reserves so it will not stack data for other play again loop
-            _reservePlayers.Clear();
-            _reserveTeams.Clear();
 
             AddStackPanelVisibility = Visibility.Visible;
         }
@@ -369,35 +366,9 @@ namespace GameTournament.MVVM.ViewModels
             AddStackPanelVisibility = Visibility.Hidden;
             StatisticsTableVisibility = Visibility.Visible;
 
-            foreach (Player player1 in PlayersInTournament)
-            {
-                foreach (Player player2 in PlayersInTournament)
-                {
-                    if (player1 != player2)
-                    {
-                        if (player1.OpponentCount < PlayersInTournament.Count - 1 &&
-                            player2.OpponentCount < PlayersInTournament.Count - 1)
-                        {
-                            player1.OpponentCount++;
-                            player2.OpponentCount++;
-
-                            Match oneMatch = new Match();
-                            oneMatch.Player1 = player1;
-                            oneMatch.Player2 = player2;
-                            Matches.Add(oneMatch);
-                        }
-                    }
-                }
-
-            }
-
+            GenerateRoundRobinMatches();
             Matches.ListChanged += Matches_ListChanged;
-
-            foreach (Player player in PlayersInTournament)
-            {
-                State state = new State() { PlayerInGame = player };
-                Statistics.Add(state);
-            }
+            InitializePlayerStatistics();
 
             MatchesListBoxVisibility = Visibility.Visible;
         }
@@ -408,29 +379,47 @@ namespace GameTournament.MVVM.ViewModels
             {
                 int changedIndex = e.NewIndex;
 
+                //checking which player changed
                 if (Matches[changedIndex].Goals1 > 0 && Matches[changedIndex].Score1IsEditable == false)
                 {
                     Matches[changedIndex].Score1IsEditable = true;
                     foreach (State state in Statistics)
                     {
+                        //remove points from the second player to whom first plaeyr scored
                         if (state.PlayerInGame.Id == Matches[changedIndex].Player2.Id)
+                        {
                             state.AverageGoals -= Matches[changedIndex].Goals1;
+                        }
 
+                        //add points to the first player that scored
                         if (state.PlayerInGame.Id == Matches[changedIndex].Player1.Id)
+                        {
                             state.AverageGoals += Matches[changedIndex].Goals1;
+                        }
                     }
+
+                    Matches[changedIndex].Score1IsEditable = true;
                 }
 
+                //checking which player changed
                 if (Matches[changedIndex].Goals2 > 0 && Matches[changedIndex].Score2IsEditable == false)
                 {
+
                     foreach (State state in Statistics)
                     {
+                        //remove points from the second player to whom first plaeyr scored
                         if (state.PlayerInGame.Id == Matches[changedIndex].Player1.Id)
+                        {
                             state.AverageGoals -= Matches[changedIndex].Goals2;
+                        }
 
+                        //add points to the first player that scored
                         if (state.PlayerInGame.Id == Matches[changedIndex].Player2.Id)
+                        {
                             state.AverageGoals += Matches[changedIndex].Goals2;
+                        }
                     }
+
                     Matches[changedIndex].Score2IsEditable = true;
                 }
             }
@@ -448,21 +437,94 @@ namespace GameTournament.MVVM.ViewModels
         {
             SelectedPlayer.TeamInTournament = SelectedTeam;
             PlayersInTournament.Add(SelectedPlayer);
-            _reservePlayers.Add(SelectedPlayer);
-            _reserveTeams.Add(SelectedTeam);
             AllPlayers.Remove(SelectedPlayer);
             AllTeams.Remove(SelectedTeam);
+
             if (PlayersInTournament.Count == 2)
+            {
                 StartTournamentCommand.RaiseCanExecuteChanged();
+            }
         }
 
         private bool CanAddToTournament()
         {
             if (SelectedPlayer == null || SelectedTeam == null)
+            {
                 return false;
+            }
 
             else return true;
         }
+
+        private void SetDefaultVisibilities()
+        {
+            //Setting visibilities to default ones
+            StatisticsTableVisibility = Visibility.Hidden;
+            PlayAgainButtonVisibility = Visibility.Hidden;
+            MatchesListBoxVisibility = Visibility.Hidden;
+        }
+
+        private void ClearTournamentInformation()
+        {
+            //Clearing tournament and setting start button's activity
+            PlayersInTournament.Clear();
+            StartTournamentCommand.RaiseCanExecuteChanged();
+            Statistics.Clear();
+            Matches.Clear();
+            AllPlayers.Clear();
+            AllTeams.Clear();
+        }
+
+        private void GenerateRoundRobinMatches()
+        {
+            foreach (Player player1 in PlayersInTournament)
+            {
+                foreach (Player player2 in PlayersInTournament)
+                {
+                    if (player1 != player2)
+                    {
+                        if (player1.OpponentCount < PlayersInTournament.Count - 1 && player2.OpponentCount < PlayersInTournament.Count - 1)
+                        {
+                            player1.OpponentCount++;
+                            player2.OpponentCount++;
+
+                            Match oneMatch = new Match();
+                            oneMatch.Player1 = player1;
+                            oneMatch.Player2 = player2;
+                            Matches.Add(oneMatch);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void InitializePlayerStatistics()
+        {
+            foreach (Player player in PlayersInTournament)
+            {
+                State state = new State() { PlayerInGame = player };
+                Statistics.Add(state);
+            }
+        }
         #endregion
+
+
+
+        #region Persistence logic
+        private BindingList<Player> GetAllPlayers()
+        {
+            var access = new DataAccess();
+
+            return new BindingList<Player>(access.GetPlayers());
+        }
+
+        private BindingList<Team> GetAllTeams()
+        {
+            var access = new DataAccess();
+
+            return new BindingList<Team>(access.GetTeams());
+        }
+        #endregion
+
     }
 }
