@@ -176,7 +176,6 @@ namespace GameTournament.MVVM.ViewModels
             AllPlayers = GetAllPlayers();
             AllTeams = GetAllTeams();
 
-
             AddStackPanelVisibility = Visibility.Visible;
         }
 
@@ -192,162 +191,8 @@ namespace GameTournament.MVVM.ViewModels
 
         private void EndTournament()
         {
-            foreach (Match match in Matches)
-            {
-                if (match.Goals1 > match.Goals2)
-                    foreach (State state in Statistics)
-                        if (state.PlayerInGame.Id == match.Player1.Id)
-                            state.Points += 3;
-
-                if (match.Goals1 < match.Goals2)
-                    foreach (State state in Statistics)
-                        if (state.PlayerInGame.Id == match.Player2.Id)
-                            state.Points += 3;
-
-
-                if (match.Goals1 == match.Goals2)
-                {
-                    foreach (State state in Statistics)
-                    {
-                        if (state.PlayerInGame.Id == match.Player1.Id)
-                            state.Points += 1;
-
-                        if (state.PlayerInGame.Id == match.Player2.Id)
-                            state.Points += 1;
-                    }
-                }
-            }
-
-            List<int> PointsList = new List<int>();
-            List<int> SumList = new List<int>();
-
-            foreach (State state in Statistics)
-            {
-                PointsList.Add(state.Points);
-                SumList.Add(state.Points + state.AverageGoals);
-            }
-
-            if (PointsList.Distinct().Count() == 1)
-            {
-                if (SumList.Distinct().Count() == 1)
-                {
-                    MessageBox.Show("There is no winner in this tournament");
-                    Player winner = new Player() { WonTournamentNumber = _tourNumber, Name = "Nobody won" };
-                    Winners.Add(winner);
-                }
-
-                else
-                {
-                    int winnerIndex = SumList.IndexOf(SumList.Max());
-                    if (SumList.Distinct().Count() != SumList.Count)
-                    {
-                        bool maxExist2 = false;
-                        var dupBase2 = SumList.GroupBy(i => i).Where(g => g.Count() > 1).Select(g => g.Key);
-                        List<int> dupSums = new List<int>(dupBase2);
-
-                        foreach (int dup in dupBase2)
-                            if (dup == SumList.Max())
-                                maxExist2 = true;
-
-
-                        if (maxExist2)
-                        {
-                            MessageBox.Show("There is no winner in this tournament");
-                            Player winner = new Player() { WonTournamentNumber = _tourNumber, Name = "Nobody won" };
-                            Winners.Add(winner);
-                        }
-
-                        else
-                        {
-                            MessageBox.Show($"The winner is {Statistics[winnerIndex].PlayerInGame.Name}");
-                            Statistics[winnerIndex].PlayerInGame.WonTournamentNumber = _tourNumber;
-                            Winners.Add(Statistics[winnerIndex].PlayerInGame);
-                        }
-                    }
-
-                    else
-                    {
-                        MessageBox.Show($"The winner is {Statistics[winnerIndex].PlayerInGame.Name}");
-                        Statistics[winnerIndex].PlayerInGame.WonTournamentNumber = _tourNumber;
-                        Winners.Add(Statistics[winnerIndex].PlayerInGame);
-                    }
-                }
-            }
-
-            else
-            {
-                if (PointsList.Distinct().Count() != PointsList.Count)
-                {
-                    bool maxExist = false;
-                    var dupBase = PointsList.GroupBy(i => i).Where(g => g.Count() > 1).Select(g => g.Key);
-                    List<int> dupPoints = new List<int>(dupBase);
-
-                    foreach (int dup in dupPoints)
-                        if (dup == PointsList.Max())
-                            maxExist = true;
-
-                    if (maxExist)
-                    {
-                        if (SumList.Distinct().Count() == 1)
-                        {
-                            MessageBox.Show("There is no winner in this tournament");
-                            Player winner = new Player() { WonTournamentNumber = _tourNumber, Name = "Nobody won" };
-                            Winners.Add(winner);
-                        }
-
-                        else
-                        {
-                            int winnerIndex = SumList.IndexOf(SumList.Max());
-                            if (SumList.Distinct().Count() != SumList.Count)
-                            {
-                                bool maxExist2 = false;
-                                var dupBase2 = SumList.GroupBy(i => i).Where(g => g.Count() > 1).Select(g => g.Key);
-                                List<int> dupSums = new List<int>(dupBase2);
-
-                                foreach (int dup in dupBase2)
-                                    if (dup == SumList.Max())
-                                        maxExist2 = true;
-
-                                if (maxExist2)
-                                {
-                                    MessageBox.Show("There is no winner in this tournament");
-                                    Player winner = new Player() { WonTournamentNumber = _tourNumber, Name = "Nobody won" };
-                                    Winners.Add(winner);
-                                }
-
-                                else
-                                {
-                                    MessageBox.Show($"The winner is {Statistics[winnerIndex].PlayerInGame.Name}");
-                                    Statistics[winnerIndex].PlayerInGame.WonTournamentNumber = _tourNumber;
-                                    Winners.Add(Statistics[winnerIndex].PlayerInGame);
-                                }
-                            }
-
-                            else
-                            {
-                                MessageBox.Show($"The winner is {Statistics[winnerIndex].PlayerInGame.Name}");
-                                Statistics[winnerIndex].PlayerInGame.WonTournamentNumber = _tourNumber;
-                                Winners.Add(Statistics[winnerIndex].PlayerInGame);
-                            }
-                        }
-                    }
-
-                    else
-                    {
-                        MessageBox.Show($"The winner is {Statistics[PointsList.IndexOf(PointsList.Max())].PlayerInGame.Name}");
-                        Statistics[PointsList.IndexOf(PointsList.Max())].PlayerInGame.WonTournamentNumber = _tourNumber;
-                        Winners.Add(Statistics[PointsList.IndexOf(PointsList.Max())].PlayerInGame);
-                    }
-                }
-
-                else
-                {
-                    MessageBox.Show($"The winner is {Statistics[PointsList.IndexOf(PointsList.Max())].PlayerInGame.Name}");
-                    Statistics[PointsList.IndexOf(PointsList.Max())].PlayerInGame.WonTournamentNumber = _tourNumber;
-                    Winners.Add(Statistics[PointsList.IndexOf(PointsList.Max())].PlayerInGame);
-                }
-            }
-
+            CalculatePoints();
+            DetermineWinner();
 
             _canEnd = false;
             PlayAgainButtonVisibility = Visibility.Visible;
@@ -379,49 +224,15 @@ namespace GameTournament.MVVM.ViewModels
             {
                 int changedIndex = e.NewIndex;
 
-                //checking which player changed
-                if (Matches[changedIndex].Goals1 > 0 && Matches[changedIndex].Score1IsEditable == false)
-                {
-                    Matches[changedIndex].Score1IsEditable = true;
-                    foreach (State state in Statistics)
-                    {
-                        //remove points from the second player to whom first plaeyr scored
-                        if (state.PlayerInGame.Id == Matches[changedIndex].Player2.Id)
-                        {
-                            state.AverageGoals -= Matches[changedIndex].Goals1;
-                        }
+                var changedMatch = Matches[changedIndex];
+                var player1 = changedMatch.Player1;
+                var player2 = changedMatch.Player2;
 
-                        //add points to the first player that scored
-                        if (state.PlayerInGame.Id == Matches[changedIndex].Player1.Id)
-                        {
-                            state.AverageGoals += Matches[changedIndex].Goals1;
-                        }
-                    }
+                bool result1 = UpdateScoresAndStatistics(player1.Id, player2.Id, changedMatch.Goals1, changedMatch.Score1IsEditable);
+                bool result2 = UpdateScoresAndStatistics(player2.Id, player1.Id, changedMatch.Goals2, changedMatch.Score2IsEditable);
 
-                    Matches[changedIndex].Score1IsEditable = true;
-                }
-
-                //checking which player changed
-                if (Matches[changedIndex].Goals2 > 0 && Matches[changedIndex].Score2IsEditable == false)
-                {
-
-                    foreach (State state in Statistics)
-                    {
-                        //remove points from the second player to whom first plaeyr scored
-                        if (state.PlayerInGame.Id == Matches[changedIndex].Player1.Id)
-                        {
-                            state.AverageGoals -= Matches[changedIndex].Goals2;
-                        }
-
-                        //add points to the first player that scored
-                        if (state.PlayerInGame.Id == Matches[changedIndex].Player2.Id)
-                        {
-                            state.AverageGoals += Matches[changedIndex].Goals2;
-                        }
-                    }
-
-                    Matches[changedIndex].Score2IsEditable = true;
-                }
+                changedMatch.Score1IsEditable = result1;
+                changedMatch.Score2IsEditable = result2;
             }
         }
 
@@ -455,7 +266,145 @@ namespace GameTournament.MVVM.ViewModels
 
             else return true;
         }
+        #endregion
 
+        #region Winner calculation logic
+        private void CalculatePoints()
+        {
+            foreach (Match match in Matches)
+            {
+                if (match.Goals1 > match.Goals2)
+                {
+                    foreach (State state in Statistics)
+                    {
+
+                        if (state.PlayerInGame.Id == match.Player1.Id)
+                        {
+                            state.Points += 3;
+                        }
+                    }
+                }
+
+
+                if (match.Goals1 < match.Goals2)
+                {
+                    foreach (State state in Statistics)
+                    {
+
+                        if (state.PlayerInGame.Id == match.Player2.Id)
+                        {
+
+                            state.Points += 3;
+                        }
+                    }
+                }
+
+
+                if (match.Goals1 == match.Goals2)
+                {
+                    foreach (State state in Statistics)
+                    {
+                        if (state.PlayerInGame.Id == match.Player1.Id)
+                        {
+                            state.Points += 1;
+                        }
+
+                        if (state.PlayerInGame.Id == match.Player2.Id)
+                        {
+                            state.Points += 1;
+                        }
+                    }
+                }
+            }
+        }
+
+        //Checks if there is a winnner based on list of numeric values
+        bool CheckForWinner(List<int> list, out int winnerIndex)
+        {
+            winnerIndex = -1;
+            if (list.Distinct().Count() == 1)
+            {
+                return false; // All values are the same, no winner.
+            }
+
+            int maxValue = list.Max();
+            bool hasDuplicateMax = list.Count(x => x == maxValue) > 1;
+
+            if (hasDuplicateMax)
+            {
+                return false; // There are duplicates of the max value, no winner.
+            }
+
+            winnerIndex = list.IndexOf(maxValue);
+            return true; // We have a unique winner.
+        }
+
+        void DetermineWinner()
+        {
+            List<int> PointsList = new List<int>();
+            List<int> SumList = new List<int>();
+
+            foreach (State state in Statistics)
+            {
+                PointsList.Add(state.Points);
+                SumList.Add(state.Points + state.AverageGoals);
+            }
+
+            int winnerIndex;
+
+            if (CheckForWinner(PointsList, out winnerIndex))
+            {
+                DeclareWinner(winnerIndex);
+            }
+            else if (CheckForWinner(SumList, out winnerIndex))
+            {
+                DeclareWinner(winnerIndex);
+            }
+            else
+            {
+                NoWinner();
+            }
+        }
+
+        void DeclareWinner(int winnerIndex)
+        {
+            MessageBox.Show($"The winner is {Statistics[winnerIndex].PlayerInGame.Name}");
+            Statistics[winnerIndex].PlayerInGame.WonTournamentNumber = _tourNumber;
+            Winners.Add(Statistics[winnerIndex].PlayerInGame);
+        }
+
+        void NoWinner()
+        {
+            MessageBox.Show("There is no winner in this tournament");
+            Player winner = new Player() { WonTournamentNumber = _tourNumber, Name = "No winner" };
+            Winners.Add(winner);
+        }
+        #endregion
+
+        #region Helper methods
+        private bool UpdateScoresAndStatistics(int scorerId, int opponentId, int goals, bool scoreIsEditable)
+        {
+            if (goals > 0 && !scoreIsEditable)
+            {
+                scoreIsEditable = true;
+                foreach (State state in Statistics)
+                {
+                    // Remove points from the opponent
+                    if (state.PlayerInGame.Id == opponentId)
+                    {
+                        state.AverageGoals -= goals;
+                    }
+
+                    // Add points to the scorer
+                    if (state.PlayerInGame.Id == scorerId)
+                    {
+                        state.AverageGoals += goals;
+                    }
+                }
+            }
+
+            return scoreIsEditable;
+        }
         private void SetDefaultVisibilities()
         {
             //Setting visibilities to default ones
@@ -507,8 +456,6 @@ namespace GameTournament.MVVM.ViewModels
             }
         }
         #endregion
-
-
 
         #region Persistence logic
         private BindingList<Player> GetAllPlayers()

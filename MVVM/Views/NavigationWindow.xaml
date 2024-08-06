@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:GameTournament.MVVM.Views"
         xmlns:viewModel="clr-namespace:GameTournament.MVVM.ViewModels"
         mc:Ignorable="d"
-        Height="650" Width="1000"
+        Height="800" Width="1000"
         ResizeMode="NoResize"
         WindowStyle="None"
         Background="Transparent"
