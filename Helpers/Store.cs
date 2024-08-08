@@ -1,7 +1,7 @@
 ﻿using GameTournament.MVVM.Models;
 using System;
 
-namespace GameTournament.ExtraThings
+namespace GameTournament.Helpers
 {
     public class Store
     {

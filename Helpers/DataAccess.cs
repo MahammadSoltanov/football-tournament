@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 
-namespace GameTournament.ExtraThings
+namespace GameTournament.Helpers
 {
     public class DataAccess
     {
@@ -41,5 +41,7 @@ namespace GameTournament.ExtraThings
                 connection.Query<Team>($"Use PES2013; INSERT INTO Teams(Name) VALUES ('{newTeam}');");
             }
         }
+
+
     }
 }

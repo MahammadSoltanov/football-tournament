@@ -1,7 +1,8 @@
-﻿using GameTournament.ExtraThings;
+﻿using GameTournament.Helpers;
 using GameTournament.MVVM.Models;
 using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows;
 
 
@@ -61,7 +62,7 @@ namespace GameTournament.MVVM.ViewModels
                 MessageBox.Show("This team already exists.");
             }
 
-            var newTeam = new Team() { Name = NewTeamName };
+            var newTeam = new Team() { Name = NewTeamName, Id = TeamsList.Last().Id + 1 };
             TeamsList.Add(newTeam);
             try
             {
@@ -109,7 +110,7 @@ namespace GameTournament.MVVM.ViewModels
                 MessageBox.Show("This player already exists.");
             }
 
-            Player NewPlayer = new Player() { Name = NewPlayerName };
+            Player NewPlayer = new Player() { Name = NewPlayerName, Id = PlayersList.Last().Id + 1 };
             PlayersList.Add(NewPlayer);
 
             try

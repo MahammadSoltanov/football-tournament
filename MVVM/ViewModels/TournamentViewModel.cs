@@ -1,8 +1,7 @@
-﻿using GameTournament.ExtraThings;
+﻿using GameTournament.Helpers;
 using GameTournament.MVVM.Models;
-using System.Collections.Generic;
+using GameTournament.Services;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows;
 
 namespace GameTournament.MVVM.ViewModels
@@ -16,6 +15,8 @@ namespace GameTournament.MVVM.ViewModels
         private Team _selectedTeam;
         private BindingList<Player> _allPlayers;
         private BindingList<Team> _allTeams;
+        private readonly ResultsService _resultsService;
+        private readonly TournamentManagerService _tournamentManagerService;
         #endregion
 
         #region ViewModelProperties        
@@ -148,8 +149,8 @@ namespace GameTournament.MVVM.ViewModels
         public TournamentViewModel(Store store)
         {
             _storeTVM = store;
-            AllPlayers = GetAllPlayers();
-            AllTeams = GetAllTeams();
+            AllPlayers = Mapper.GetAllPlayers();
+            AllTeams = Mapper.GetAllTeams();
 
             Statistics = new BindingList<State>();
             Winners = new BindingList<Player>();
@@ -159,11 +160,14 @@ namespace GameTournament.MVVM.ViewModels
             PlayAgainCommand = new RelayCommand(PlayAgain);
             PlayersInTournament = new BindingList<Player>();
             Matches = new BindingList<Match>();
+
+            _resultsService = new ResultsService();
+            _tournamentManagerService = new TournamentManagerService(Winners, Statistics, Matches, PlayersInTournament);
             _storeTVM.PlayerAdded += _storeTVM_PlayerAdded;
             _storeTVM.TeamAdded += _storeTVM_TeamAdded;
         }
 
-        #region MVVM and Commands
+        #region Main Commands
         private void PlayAgain()
         {
             SetDefaultVisibilities();
@@ -173,26 +177,30 @@ namespace GameTournament.MVVM.ViewModels
             EndTournamentCommand.RaiseCanExecuteChanged();
             ClearTournamentInformation();
 
-            AllPlayers = GetAllPlayers();
-            AllTeams = GetAllTeams();
+            AllPlayers = Mapper.GetAllPlayers();
+            AllTeams = Mapper.GetAllTeams();
 
             AddStackPanelVisibility = Visibility.Visible;
         }
 
-        private void _storeTVM_TeamAdded(Team team)
-        {
-            AllTeams.Add(team);
-        }
-
-        private void _storeTVM_PlayerAdded(Player player)
-        {
-            AllPlayers.Add(player);
-        }
-
         private void EndTournament()
         {
-            CalculatePoints();
-            DetermineWinner();
+            _tournamentManagerService.IncrementTourNumber();
+            _tournamentManagerService.CalculatePoints();
+
+            var points = _tournamentManagerService.GetPointsFromStatistics();
+            var pointsWithGoals = _tournamentManagerService.GetPointsWithGoalsFromStatistics();
+
+            var winnerIndex = _resultsService.DetermineWinnerIndex(points, pointsWithGoals);
+
+            if (winnerIndex != -1)
+            {
+                _tournamentManagerService.DeclareWinner(winnerIndex);
+            }
+            else
+            {
+                _tournamentManagerService.NoWinner();
+            }
 
             _canEnd = false;
             PlayAgainButtonVisibility = Visibility.Visible;
@@ -200,48 +208,16 @@ namespace GameTournament.MVVM.ViewModels
             EndTournamentCommand.RaiseCanExecuteChanged();
         }
 
-        private bool CanEndTournament()
-        {
-            return _canEnd;
-        }
-
         private void StartTournament()
         {
-            _tourNumber++;
             AddStackPanelVisibility = Visibility.Hidden;
             StatisticsTableVisibility = Visibility.Visible;
 
-            GenerateRoundRobinMatches();
+            _tournamentManagerService.GenerateRoundRobinMatches();
             Matches.ListChanged += Matches_ListChanged;
             InitializePlayerStatistics();
 
             MatchesListBoxVisibility = Visibility.Visible;
-        }
-
-        private void Matches_ListChanged(object sender, ListChangedEventArgs e)
-        {
-            if (e.ListChangedType == ListChangedType.ItemChanged)
-            {
-                int changedIndex = e.NewIndex;
-
-                var changedMatch = Matches[changedIndex];
-                var player1 = changedMatch.Player1;
-                var player2 = changedMatch.Player2;
-
-                bool result1 = UpdateScoresAndStatistics(player1.Id, player2.Id, changedMatch.Goals1, changedMatch.Score1IsEditable);
-                bool result2 = UpdateScoresAndStatistics(player2.Id, player1.Id, changedMatch.Goals2, changedMatch.Score2IsEditable);
-
-                changedMatch.Score1IsEditable = result1;
-                changedMatch.Score2IsEditable = result2;
-            }
-        }
-
-        private bool CanStartTournament()
-        {
-            if (PlayersInTournament.Count < 2)
-                return false;
-
-            else return true;
         }
 
         private void AddToTournament()
@@ -256,155 +232,10 @@ namespace GameTournament.MVVM.ViewModels
                 StartTournamentCommand.RaiseCanExecuteChanged();
             }
         }
-
-        private bool CanAddToTournament()
-        {
-            if (SelectedPlayer == null || SelectedTeam == null)
-            {
-                return false;
-            }
-
-            else return true;
-        }
         #endregion
 
-        #region Winner calculation logic
-        private void CalculatePoints()
-        {
-            foreach (Match match in Matches)
-            {
-                if (match.Goals1 > match.Goals2)
-                {
-                    foreach (State state in Statistics)
-                    {
-
-                        if (state.PlayerInGame.Id == match.Player1.Id)
-                        {
-                            state.Points += 3;
-                        }
-                    }
-                }
-
-
-                if (match.Goals1 < match.Goals2)
-                {
-                    foreach (State state in Statistics)
-                    {
-
-                        if (state.PlayerInGame.Id == match.Player2.Id)
-                        {
-
-                            state.Points += 3;
-                        }
-                    }
-                }
-
-
-                if (match.Goals1 == match.Goals2)
-                {
-                    foreach (State state in Statistics)
-                    {
-                        if (state.PlayerInGame.Id == match.Player1.Id)
-                        {
-                            state.Points += 1;
-                        }
-
-                        if (state.PlayerInGame.Id == match.Player2.Id)
-                        {
-                            state.Points += 1;
-                        }
-                    }
-                }
-            }
-        }
-
-        //Checks if there is a winnner based on list of numeric values
-        bool CheckForWinner(List<int> list, out int winnerIndex)
-        {
-            winnerIndex = -1;
-            if (list.Distinct().Count() == 1)
-            {
-                return false; // All values are the same, no winner.
-            }
-
-            int maxValue = list.Max();
-            bool hasDuplicateMax = list.Count(x => x == maxValue) > 1;
-
-            if (hasDuplicateMax)
-            {
-                return false; // There are duplicates of the max value, no winner.
-            }
-
-            winnerIndex = list.IndexOf(maxValue);
-            return true; // We have a unique winner.
-        }
-
-        void DetermineWinner()
-        {
-            List<int> PointsList = new List<int>();
-            List<int> SumList = new List<int>();
-
-            foreach (State state in Statistics)
-            {
-                PointsList.Add(state.Points);
-                SumList.Add(state.Points + state.AverageGoals);
-            }
-
-            int winnerIndex;
-
-            if (CheckForWinner(PointsList, out winnerIndex))
-            {
-                DeclareWinner(winnerIndex);
-            }
-            else if (CheckForWinner(SumList, out winnerIndex))
-            {
-                DeclareWinner(winnerIndex);
-            }
-            else
-            {
-                NoWinner();
-            }
-        }
-
-        void DeclareWinner(int winnerIndex)
-        {
-            MessageBox.Show($"The winner is {Statistics[winnerIndex].PlayerInGame.Name}");
-            Statistics[winnerIndex].PlayerInGame.WonTournamentNumber = _tourNumber;
-            Winners.Add(Statistics[winnerIndex].PlayerInGame);
-        }
-
-        void NoWinner()
-        {
-            MessageBox.Show("There is no winner in this tournament");
-            Player winner = new Player() { WonTournamentNumber = _tourNumber, Name = "No winner" };
-            Winners.Add(winner);
-        }
-        #endregion
 
         #region Helper methods
-        private bool UpdateScoresAndStatistics(int scorerId, int opponentId, int goals, bool scoreIsEditable)
-        {
-            if (goals > 0 && !scoreIsEditable)
-            {
-                scoreIsEditable = true;
-                foreach (State state in Statistics)
-                {
-                    // Remove points from the opponent
-                    if (state.PlayerInGame.Id == opponentId)
-                    {
-                        state.AverageGoals -= goals;
-                    }
-
-                    // Add points to the scorer
-                    if (state.PlayerInGame.Id == scorerId)
-                    {
-                        state.AverageGoals += goals;
-                    }
-                }
-            }
-
-            return scoreIsEditable;
-        }
         private void SetDefaultVisibilities()
         {
             //Setting visibilities to default ones
@@ -424,28 +255,7 @@ namespace GameTournament.MVVM.ViewModels
             AllTeams.Clear();
         }
 
-        private void GenerateRoundRobinMatches()
-        {
-            foreach (Player player1 in PlayersInTournament)
-            {
-                foreach (Player player2 in PlayersInTournament)
-                {
-                    if (player1 != player2)
-                    {
-                        if (player1.OpponentCount < PlayersInTournament.Count - 1 && player2.OpponentCount < PlayersInTournament.Count - 1)
-                        {
-                            player1.OpponentCount++;
-                            player2.OpponentCount++;
 
-                            Match oneMatch = new Match();
-                            oneMatch.Player1 = player1;
-                            oneMatch.Player2 = player2;
-                            Matches.Add(oneMatch);
-                        }
-                    }
-                }
-            }
-        }
 
         private void InitializePlayerStatistics()
         {
@@ -455,23 +265,63 @@ namespace GameTournament.MVVM.ViewModels
                 Statistics.Add(state);
             }
         }
+
+
         #endregion
 
-        #region Persistence logic
-        private BindingList<Player> GetAllPlayers()
+        #region EventHandling
+        private void Matches_ListChanged(object sender, ListChangedEventArgs e)
         {
-            var access = new DataAccess();
+            if (e.ListChangedType == ListChangedType.ItemChanged)
+            {
+                int changedIndex = e.NewIndex;
 
-            return new BindingList<Player>(access.GetPlayers());
+                var changedMatch = Matches[changedIndex];
+                var player1 = changedMatch.Player1;
+                var player2 = changedMatch.Player2;
+
+                bool result1 = _tournamentManagerService.UpdateScoresAndStatistics(player1.Id, player2.Id, changedMatch.Goals1, changedMatch.Score1IsEditable);
+                bool result2 = _tournamentManagerService.UpdateScoresAndStatistics(player2.Id, player1.Id, changedMatch.Goals2, changedMatch.Score2IsEditable);
+
+                changedMatch.Score1IsEditable = result1;
+                changedMatch.Score2IsEditable = result2;
+            }
         }
 
-        private BindingList<Team> GetAllTeams()
+        private void _storeTVM_TeamAdded(Team team)
         {
-            var access = new DataAccess();
+            AllTeams.Add(team);
+        }
 
-            return new BindingList<Team>(access.GetTeams());
+        private void _storeTVM_PlayerAdded(Player player)
+        {
+            AllPlayers.Add(player);
         }
         #endregion
 
+        private bool CanEndTournament()
+        {
+            return _canEnd;
+        }
+
+        private bool CanAddToTournament()
+        {
+            if (SelectedPlayer == null || SelectedTeam == null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool CanStartTournament()
+        {
+            if (PlayersInTournament.Count < 2)
+            {
+                return false;
+            }
+
+            return true;
+        }
     }
 }

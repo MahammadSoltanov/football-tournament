@@ -62,6 +62,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Helpers\Mapper.cs" />
+    <Compile Include="Services\ResultsService.cs" />
+    <Compile Include="Services\TournamentManagerService.cs" />
     <Page Include="MVVM\Views\DataListView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -74,11 +77,11 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="ExtraThings\Connection.cs" />
-    <Compile Include="ExtraThings\DataAccess.cs" />
-    <Compile Include="ExtraThings\ObservableObject.cs" />
-    <Compile Include="ExtraThings\RelayCommand.cs" />
-    <Compile Include="ExtraThings\Store.cs" />
+    <Compile Include="Helpers\Connection.cs" />
+    <Compile Include="Helpers\DataAccess.cs" />
+    <Compile Include="Helpers\ObservableObject.cs" />
+    <Compile Include="Helpers\RelayCommand.cs" />
+    <Compile Include="Helpers\Store.cs" />
     <Compile Include="MVVM\Models\Match.cs" />
     <Compile Include="MVVM\Models\Player.cs" />
     <Compile Include="MVVM\Models\State.cs" />

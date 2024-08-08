@@ -1,9 +1,4 @@
-﻿using GameTournament.ExtraThings;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GameTournament.Helpers;
 
 namespace GameTournament.MVVM.Models
 {
@@ -31,6 +26,11 @@ namespace GameTournament.MVVM.Models
                 _points = value;
                 OnPropertyChanged();
             }
+        }
+
+        public int PointsWithGoals
+        {
+            get { return _points + _averageGoals; }
         }
     }
 }

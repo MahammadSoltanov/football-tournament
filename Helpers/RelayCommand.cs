@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace GameTournament.ExtraThings
+namespace GameTournament.Helpers
 {
     public class RelayCommand : ICommand
     {

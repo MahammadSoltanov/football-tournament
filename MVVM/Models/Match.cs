@@ -1,9 +1,4 @@
-﻿using GameTournament.ExtraThings;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GameTournament.Helpers;
 
 namespace GameTournament.MVVM.Models
 {
@@ -14,13 +9,13 @@ namespace GameTournament.MVVM.Models
         public int Goals1
         {
             get { return _goals1; }
-            set 
-            { 
+            set
+            {
                 if (_goals1 != value)
                 {
                     _goals1 = value;
                     OnPropertyChanged();
-                }                
+                }
             }
         }
         private int _goals1;

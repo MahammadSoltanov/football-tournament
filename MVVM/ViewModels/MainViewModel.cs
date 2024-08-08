@@ -1,9 +1,4 @@
-﻿using GameTournament.ExtraThings;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using GameTournament.Helpers;
 
 namespace GameTournament.MVVM.ViewModels
 {
@@ -22,8 +17,8 @@ namespace GameTournament.MVVM.ViewModels
         public object CurrentView
         {
             get { return _currentView; }
-            set 
-            { 
+            set
+            {
                 _currentView = value;
                 OnPropertyChanged();
             }
@@ -42,8 +37,10 @@ namespace GameTournament.MVVM.ViewModels
 
         private void GoToTournament()
         {
-            if(CurrentView != TournamentVM)
+            if (CurrentView != TournamentVM)
+            {
                 CurrentView = TournamentVM;
+            }
         }
 
         private bool CanGoToTournament()
@@ -53,8 +50,10 @@ namespace GameTournament.MVVM.ViewModels
 
         private void GoToHome()
         {
-            if(CurrentView != HomeVM)
+            if (CurrentView != HomeVM)
+            {
                 CurrentView = HomeVM;
+            }
         }
 
         private bool CanGoToHome()
