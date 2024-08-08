@@ -185,7 +185,6 @@ namespace GameTournament.MVVM.ViewModels
 
         private void EndTournament()
         {
-            _tournamentManagerService.IncrementTourNumber();
             _tournamentManagerService.CalculatePoints();
 
             var points = _tournamentManagerService.GetPointsFromStatistics();
@@ -205,6 +204,7 @@ namespace GameTournament.MVVM.ViewModels
             _canEnd = false;
             PlayAgainButtonVisibility = Visibility.Visible;
             WinnersStackPanelVisibility = Visibility.Visible;
+            _tournamentManagerService.IncrementTourNumber();
             EndTournamentCommand.RaiseCanExecuteChanged();
         }
 
